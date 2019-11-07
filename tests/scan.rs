@@ -93,7 +93,7 @@ fn tokenize__number_not_binary() {
 #[test]
 fn tokenize__number_decimal_integer() {
     let tokens = tokenize(
-        "0 00 000 001 01 1 29 3___8 47_ 5_\n"
+        "0 00 000 001 01 1 29 3___8 47_ 5_ 0_\n"
     );
     let lexemes = to_lexemes(&tokens);
 
@@ -107,6 +107,7 @@ fn tokenize__number_decimal_integer() {
     assert_eq!(lexemes[7], &Number("3___8", Decimal));
     assert_eq!(lexemes[8], &Number("47_", Decimal));
     assert_eq!(lexemes[9], &Number("5_", Decimal));
+    assert_eq!(lexemes[10], &Number("0_", Decimal));
 }
 
 #[test]
