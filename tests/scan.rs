@@ -85,16 +85,26 @@ fn tokenize__number_decimal_float() {
 #[test]
 fn tokenize__number_not_decimal() {
     let tokens = tokenize(
-        "_9 a\n"
+        "_9 a 9.0x4 0b1.4 .6 4.3_.5\n"
     );
     let lexemes = to_lexemes(&tokens);
 
     assert_eq!(lexemes[0], &Identifier("_9"));
     assert_eq!(lexemes[1], &Identifier("a"));
+    assert_eq!(lexemes[2], &Number("9.0", Decimal));
+    assert_eq!(lexemes[3], &Identifier("x4"));
+    assert_eq!(lexemes[4], &Number("0b1", Binary));
+    assert_eq!(lexemes[5], &Dot);
+    assert_eq!(lexemes[6], &Number("4", Decimal));
+    assert_eq!(lexemes[7], &Dot);
+    assert_eq!(lexemes[8], &Number("6", Decimal));
+    assert_eq!(lexemes[9], &Number("4.3_", Decimal));
+    assert_eq!(lexemes[10], &Dot);
+    assert_eq!(lexemes[11], &Number("5", Decimal));
 }
 
 #[test]
-fn scan__tokenize__number_hexadecimal_good() {
+fn tokenize__number_hexadecimal() {
     let tokens = tokenize(
         "0x 0x0 0x1 0x10 0x01 0x_2F 0xe_3 0x4D_ 0x__\n"
     );

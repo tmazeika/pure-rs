@@ -14,6 +14,7 @@ pub enum Lexeme<'a> {
     RightParen,
     LeftBracket,
     RightBracket,
+    Dot,
     Identifier(&'a str),
     Number(&'a str, Radix),
 }
@@ -83,6 +84,7 @@ pub fn tokenize<'a>(source: &'a str) -> Vec<Token> {
             ')' => consume(Lexeme::RightParen),
             '[' => consume(Lexeme::LeftBracket),
             ']' => consume(Lexeme::RightBracket),
+            '.' => consume(Lexeme::Dot),
             'a'..='z' | 'A'..='Z' | '_' => add(consume_identifier(source, start_idx, &mut source_iter)),
             '0'..='9' => add(consume_number(source, start_idx, &mut source_iter)),
             '#' => consume_comment(&mut source_iter),
