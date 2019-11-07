@@ -2,10 +2,54 @@ use pure;
 use pure::scan::*;
 use pure::scan::Radix::*;
 use pure::scan::Lexeme::*;
-use std::ops::Add;
 
 fn to_lexemes<'a>(tokens: &'a Vec<Token>) -> Vec<&'a Lexeme<'a>> {
     tokens.iter().map(|token| token.lexeme()).collect()
+}
+
+#[test]
+fn tokenize__all() {
+    let tokens = tokenize(
+        "abc _def__ 3.4\r\n\t.[ ] ())  .23v0b# 0b\r\n0b11\"a\\\\bc\""
+    );
+    let lexemes = to_lexemes(&tokens);
+
+    assert_eq!(lexemes[0], &Identifier("abc"));
+    assert_eq!(lexemes[1], &Identifier("_def__"));
+    assert_eq!(lexemes[2], &Number("3.4", Decimal));
+    assert_eq!(lexemes[3], &Dot);
+    assert_eq!(lexemes[4], &LeftBracket);
+    assert_eq!(lexemes[5], &RightBracket);
+    assert_eq!(lexemes[6], &LeftParen);
+    assert_eq!(lexemes[7], &RightParen);
+    assert_eq!(lexemes[8], &RightParen);
+    assert_eq!(lexemes[9], &Dot);
+    assert_eq!(lexemes[10], &Number("23", Decimal));
+    assert_eq!(lexemes[11], &Identifier("v0b"));
+    assert_eq!(lexemes[12], &Number("0b11", Binary));
+    assert_eq!(lexemes[13], &String("a\\\\bc"));
+}
+
+#[test]
+fn tokenize__string() {
+    let tokens = tokenize(
+        "\"\" \"a\" \"abc\" \"\\\"\" \"d\\\\\\\"ef\" \"1\n\" \"23\n\t4\"\n"
+    );
+    let lexemes = to_lexemes(&tokens);
+
+    assert_eq!(lexemes[0], &String(""));
+    assert_eq!(lexemes[1], &String("a"));
+    assert_eq!(lexemes[2], &String("abc"));
+    assert_eq!(lexemes[3], &String("\\\""));
+    assert_eq!(lexemes[4], &String("d\\\\\\\"ef"));
+    assert_eq!(lexemes[5], &String("1\n"));
+    assert_eq!(lexemes[6], &String("23\n\t4"));
+}
+
+#[test]
+#[should_panic]
+fn tokenize__string_unterminated() {
+    tokenize("\"a\" \"abc");
 }
 
 #[test]

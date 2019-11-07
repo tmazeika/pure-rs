@@ -16,13 +16,15 @@ pub enum Lexeme<'a> {
     RightBracket,
     Dot,
     Identifier(&'a str),
+    String(&'a str),
     Number(&'a str, Radix),
 }
 
 impl<'a> Lexeme<'a> {
     pub fn len(&self) -> usize {
+        use Lexeme::*;
         match self {
-            Lexeme::Identifier(s) | Lexeme::Number(s, _) => s.len(),
+            Identifier(s) | String(s) | Number(s, _) => s.len(),
             _ => 1,
         }
     }
@@ -86,11 +88,12 @@ pub fn tokenize<'a>(source: &'a str) -> Vec<Token> {
             ']' => consume(Lexeme::RightBracket),
             '.' => consume(Lexeme::Dot),
             'a'..='z' | 'A'..='Z' | '_' => add(consume_identifier(source, start_idx, &mut source_iter)),
+            '"' => add(consume_string(source, start_idx, &mut source_iter)),
             '0'..='9' => add(consume_number(source, start_idx, &mut source_iter)),
             '#' => consume_comment(&mut source_iter),
             '\r' | '\t' | '\n' | ' ' => {
                 source_iter.next();
-            }
+            },
             _ => panic!("unknown token: {}", start_ch),
         };
     };
@@ -109,9 +112,27 @@ fn consume_identifier<'a>(source: &'a str, start_idx: usize, source_iter: &mut S
     Lexeme::Identifier(&source[start_idx..])
 }
 
+fn consume_string<'a>(source: &'a str, start_idx: usize, source_iter: &mut SourceIter) -> Lexeme<'a> {
+    // consume '"'
+    source_iter.next();
+
+    let start_idx = start_idx + 1;
+    let mut in_escape = false;
+
+    while let Some((idx, ch)) = source_iter.next() {
+        match ch {
+            '"' if !in_escape => return Lexeme::String(&source[start_idx..idx]),
+            '\\' if !in_escape => in_escape = true,
+            _ => in_escape = false,
+        };
+    };
+
+    panic!("unterminated string literal: \"{}", &source[start_idx..])
+}
+
 fn consume_number<'a>(source: &'a str, start_idx: usize, source_iter: &mut SourceIter) -> Lexeme<'a> {
     if let &(_, '1'..='9') = source_iter.peek().unwrap() {
-        return finish_decimal_number(source, start_idx, source_iter, false);
+        return finish_decimal_number(source, start_idx, source_iter);
     };
 
     // consume '0'
@@ -121,14 +142,14 @@ fn consume_number<'a>(source: &'a str, start_idx: usize, source_iter: &mut Sourc
         Some(&(_, 'b')) => {
             source_iter.next();
             finish_binary_number(source, start_idx, source_iter)
-        }
+        },
         Some(&(_, '0'..='9')) | Some(&(_, '_')) | Some(&(_, '.')) =>
-            finish_decimal_number(source, start_idx, source_iter, false),
+            finish_decimal_number(source, start_idx, source_iter),
         Some(&(_, 'x')) => {
             source_iter.next();
             finish_hexadecimal_number(source, start_idx, source_iter)
-        }
-        _ => Lexeme::Number("0", Radix::Decimal)
+        },
+        _ => Lexeme::Number("0", Radix::Decimal),
     }
 }
 
@@ -143,14 +164,18 @@ fn finish_binary_number<'a>(source: &'a str, start_idx: usize, source_iter: &mut
     Lexeme::Number(&source[start_idx..], Radix::Binary)
 }
 
-fn finish_decimal_number<'a>(source: &'a str, start_idx: usize, source_iter: &mut SourceIter, in_frac: bool) -> Lexeme<'a> {
+fn finish_decimal_number<'a>(source: &'a str, start_idx: usize, source_iter: &mut SourceIter) -> Lexeme<'a> {
+    let mut in_frac = false;
+
     while let Some(&(idx, ch)) = source_iter.peek() {
         match ch {
-            '0'..='9' | '_' => source_iter.next(),
+            '0'..='9' | '_' => {
+                source_iter.next();
+            },
             '.' if !in_frac => {
                 source_iter.next();
-                return finish_decimal_number(source, start_idx, source_iter, true);
-            }
+                in_frac = true;
+            },
             _ => return Lexeme::Number(&source[start_idx..idx], Radix::Decimal),
         };
     };
@@ -176,6 +201,6 @@ fn consume_comment(source_iter: &mut SourceIter) {
     while let Some((_, ch)) = source_iter.next() {
         if let '\n' = ch {
             break;
-        }
+        };
     };
 }
