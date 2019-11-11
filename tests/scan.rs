@@ -1,3 +1,7 @@
+#![feature(test)]
+
+extern crate test;
+
 use pure;
 use pure::scan::*;
 use pure::scan::Radix::*;
@@ -8,7 +12,7 @@ fn to_lexemes<'a>(tokens: &'a Vec<Token>) -> Vec<&'a Lexeme<'a>> {
 }
 
 #[test]
-fn tokenize__all() {
+fn tokenize_all() {
     let tokens = tokenize(
         "abc _def__ 3.4\r\n\t.[ ] ())  .23v0b# 0b\r\n0b11\"a\\\\bc\""
     );
@@ -31,7 +35,7 @@ fn tokenize__all() {
 }
 
 #[test]
-fn tokenize__string() {
+fn tokenize_string() {
     let tokens = tokenize(
         "\"\" \"a\" \"abc\" \"\\\"\" \"d\\\\\\\"ef\" \"1\n\" \"23\n\t4\"\n"
     );
@@ -48,12 +52,12 @@ fn tokenize__string() {
 
 #[test]
 #[should_panic]
-fn tokenize__string_unterminated() {
+fn tokenize_string_unterminated() {
     tokenize("\"a\" \"abc");
 }
 
 #[test]
-fn tokenize__number_binary() {
+fn tokenize_number_binary() {
     let tokens = tokenize(
         "0b 0b0 0b1 0b10 0b01 0b__11 0b1_0 0b01_ 0b_\n"
     );
@@ -71,7 +75,7 @@ fn tokenize__number_binary() {
 }
 
 #[test]
-fn tokenize__number_not_binary() {
+fn tokenize_number_not_binary() {
     let tokens = tokenize(
         "b 00b _0b 0_b b_ 0b1__b0 0b0_0xf\n"
     );
@@ -91,7 +95,7 @@ fn tokenize__number_not_binary() {
 }
 
 #[test]
-fn tokenize__number_decimal_integer() {
+fn tokenize_number_decimal_integer() {
     let tokens = tokenize(
         "0 00 000 001 01 1 29 3___8 47_ 5_ 0_\n"
     );
@@ -111,7 +115,7 @@ fn tokenize__number_decimal_integer() {
 }
 
 #[test]
-fn tokenize__number_decimal_float() {
+fn tokenize_number_decimal_float() {
     let tokens = tokenize(
         "0. 0.0 0.1 1.0 2.9 3_.4_8 56.789_ 0._1\n"
     );
@@ -128,7 +132,7 @@ fn tokenize__number_decimal_float() {
 }
 
 #[test]
-fn tokenize__number_not_decimal() {
+fn tokenize_number_not_decimal() {
     let tokens = tokenize(
         "_9 a 9.0x4 0b1.4 .6 4.3_.5\n"
     );
@@ -149,7 +153,7 @@ fn tokenize__number_not_decimal() {
 }
 
 #[test]
-fn tokenize__number_hexadecimal() {
+fn tokenize_number_hexadecimal() {
     let tokens = tokenize(
         "0x 0x0 0x1 0x10 0x01 0x_2F 0xe_3 0x4D_ 0x__\n"
     );
@@ -167,7 +171,7 @@ fn tokenize__number_hexadecimal() {
 }
 
 #[test]
-fn tokenize__number_not_hexadecimal() {
+fn tokenize_number_not_hexadecimal() {
     let tokens = tokenize(
         "x 00x _0x 0_x x_ 0x1__x0 0x0_0b0\n"
     );
